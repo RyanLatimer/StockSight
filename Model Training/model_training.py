@@ -1,9 +1,8 @@
 # Import necessary libraries for AI Long Short Term Memory Model
 import yfinance as yf
-# Torch libraries need to be installed
-#import torch 
-#import torch.nm as nm 
-#import torch.optim 
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense, Dropout
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
@@ -21,9 +20,6 @@ tickers = ['AAPL', 'AMZN', 'MSFT', 'TSLA', 'NVDA', 'V', 'JNJ', 'WMT', 'DIS', 'IN
 
 #Download all the historical data for teh last 20 years for each of the stocks
 data = yf.download(tickers, start='2004-01-01', end='2024-01-01', group_by='ticker' )
-print(data.head()) #Check the data
-print(type(data))
-print(data.columns)
 
 print(f"Flattened columns: {data.columns}")
 
@@ -40,8 +36,6 @@ for ticker in tickers:
 
 #Remove Uneccesary Rows
 data.dropna
-print(data.head(51))# Checl the data with 50 day MA
-
 
 # Features: Adjusted Close, Volume, and Moving Averages
 for ticker in tickers:
