@@ -1,12 +1,11 @@
 # Import necessary libraries for AI Long Short Term Memory Model
 import yfinance as yf
 import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense, Dropout
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
 
 #Fetch the data from Yahoo Finance
 
@@ -16,7 +15,7 @@ It would be nice to train the model on 1-2k stocks across
 various sectors to build a more complete model
 """
 
-tickers = ['AAPL', 'AMZN', 'MSFT', 'TSLA', 'NVDA', 'V', 'JNJ', 'WMT', 'DIS', 'INTC', 'AMD', 'NFLX', 'CSCO', 'XOM']
+tickers = ['AAPL']
 
 #Download all the historical data for teh last 20 years for each of the stocks
 data = yf.download(tickers, start='2004-01-01', end='2024-01-01', group_by='ticker' )
@@ -93,3 +92,26 @@ X_test_scaled = scaler_x.transform(X_test)
 #Labels
 y_train_scaled = scaler_y.fit_transform(y_train)
 y_test_scaled = scaler_y.transform(y_test)
+
+
+#Define the Model
+model = tf.keras.Sequential()
+
+#LSTM layer: Input Shape is (time steps, features)
+model.add(tf.keras.layers.LSTM(50, return_sequences=True, input_shape=(X_train_scaled.shape[1], X_train_scaled.shape[2])))
+model.add(tf.keras.layers.Dropout(0.2)) #Dropout for regularization
+
+#Create a second LSTM layer
+model.add(tf.keras.layers.LSTM(50, return_sequences=False))
+model.add(tf.keras.layers.Dropout(0.2))
+
+#Dense Layer: Final output prediction layer
+model.add(tf.keras.layers.Dense(1))#for predicting next days percentage change
+
+
+#Compile the Model
+model.compile(optimizer='adam', loss='mean_squared_error')
+
+
+#Train the model
+
