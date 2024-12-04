@@ -25,7 +25,7 @@ StockSight is a Python-based application designed to track real-time stock price
 
 ## Usage
 
-Once the application is running, you can enter a stock symbol (e.g., **AAPL** for Apple) in the provided text field. StockSight will fetch real-time data and display historical trends, as well as make predictions about future price movements. This is still a work in progress, not GUI app interface currently exists. The long term goal is to have the code run as an individual application for windows, mac, and potentially limux.
+Once the application is running, you can enter a stock symbol (e.g., **AAPL** for Apple) in the provided text field. StockSight will fetch real-time data and display historical trends, as well as make predictions about future price movements. This is still a work in progress, not a GUI app interface currently exists. The long-term goal is to have the code run as an individual application for Windows, MacOS, and potentially Limux. Additionally, if you would like to use our model script to train your own model, at the time of writing, the packages, (tensorflow, and tensorflow-gpu) are only compatible with Python 3.10.
 
 ### Example:
 
