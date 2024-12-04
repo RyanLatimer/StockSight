@@ -17,7 +17,7 @@ It would be nice to train the model on 1-2k stocks across
 various sectors to build a more complete model
 """
 
-tickers = ['AAPL', 'GOOG', 'AMZN', 'MSFT', 'TSLA', 'NVDA', 'V', 'JNJ', 'WMT', 'DIS', 'INTC', 'AMD', 'NFLX', 'CSCO', 'XOM']
+tickers = ['AAPL', 'AMZN', 'MSFT', 'TSLA', 'NVDA', 'V', 'JNJ', 'WMT', 'DIS', 'INTC', 'AMD', 'NFLX', 'CSCO', 'XOM']
 
 #Download all the historical data for teh last 20 years for each of the stocks
 data = yf.download(tickers, start='2004-01-01', end='2024-01-01', group_by='ticker' )
@@ -52,6 +52,8 @@ for ticker in tickers:
 data.dropna(inplace=True)
 
 # Features and labels arrays
+#Features are variables that are changed
+#Labels are the percentace change
 features = []
 labels = []
 
@@ -59,8 +61,8 @@ labels = []
 for ticker in tickers:
     ticker_data = data[[f'{ticker}_Adj Close', f'{ticker}_MA5', f'{ticker}_MA20', f'{ticker}_MA50', f'{ticker}_return', f'{ticker}_Volume']]
     
-    # You want to predict next day's adjusted close price
-    label = data[f'{ticker}_Adj Close'].shift(-1)
+    #Calculate and Assign percentage change to labels as value.
+    label = label = (data[f'{ticker}_Adj Close'].shift(-1) - data[f'{ticker}_Adj Close']) / data[f'{ticker}_Adj Close'] * 100
     
     # Drop rows where the shifted label is NaN
     ticker_data = ticker_data[:-1]
@@ -76,4 +78,24 @@ labels = np.array(labels)
 # Reshaping the features for LSTM
 # Features should be in the shape (samples, time_steps, features)
 features = features.reshape(features.shape[0], features.shape[1], features.shape[2])
-print("success!! Finally.......")
+
+#Flatten features and labels
+features_flat = features.reshape(-1, features.shape[2])
+labels_flat = labels.reshape(-1, 1)
+
+#Split the data up for testing.
+#Currently using a 20% testing set. This is subject to optimization.
+X_train, X_test, y_train, y_test = train_test_split(features_flat, labels_flat, test_size=0.2, shuffle=False)
+
+#Scale the data
+scaler_x = MinMaxScaler(feature_range=(0,1))
+scaler_y = MinMaxScaler(feature_range=(0,1))
+
+# Scale the features and labels
+#Features
+X_train_scaled = scaler_x.fit_transform(X_train)
+X_test_scaled = scaler_x.transform(X_test)
+
+#Labels
+y_train_scaled = scaler_y.fit_transform(y_train)
+y_test_scaled = scaler_y.transform(y_test)
