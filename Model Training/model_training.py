@@ -66,7 +66,7 @@ labels = []
 
 # For each ticker, prepare the data
 for ticker in tickers:
-    ticker_data = data[[f'{ticker}_Adj Close', f'{ticker}_MA5', f'{ticker}_MA20', f'{ticker}_MA50', f'{ticker}_return', f'{ticker}_Volume'], f'{ticker}_RSI']
+    ticker_data = data[[f'{ticker}_Adj Close', f'{ticker}_MA5', f'{ticker}_MA20', f'{ticker}_MA50', f'{ticker}_return', f'{ticker}_Volume', f'{ticker}_RSI']]
     
     #Calculate and Assign percentage change to labels as value.
     label = (data[f'{ticker}_Adj Close'].shift(-1) - data[f'{ticker}_Adj Close']) / data[f'{ticker}_Adj Close'] * 100
