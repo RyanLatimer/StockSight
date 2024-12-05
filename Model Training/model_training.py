@@ -100,24 +100,21 @@ y_train_scaled = scaler_y.fit_transform(y_train)
 y_test_scaled = scaler_y.transform(y_test)
 
 
-#Define the Model
+# Define the Model
 model = tf.keras.Sequential()
 
-#LSTM layer: Input Shape is (time steps, features)
-model.add(tf.keras.layers.LSTM(50, return_sequences=True, input_shape=(X_train_scaled.shape[1], X_train_scaled.shape[2])))
-model.add(tf.keras.layers.Dropout(0.2)) #Dropout for regularization
+# Use Input Layer
+model.add(tf.keras.layers.Input(shape=(X_train_scaled.shape[1], X_train_scaled.shape[2])))
 
-#Create a second LSTM layer
+# LSTM Layers
+model.add(tf.keras.layers.LSTM(50, return_sequences=True))
+model.add(tf.keras.layers.Dropout(0.2))
+
 model.add(tf.keras.layers.LSTM(50, return_sequences=False))
 model.add(tf.keras.layers.Dropout(0.2))
 
-#Dense Layer: Final output prediction layer
-model.add(tf.keras.layers.Dense(1))#for predicting next days percentage change
+# Dense Layer: Final output prediction layer
+model.add(tf.keras.layers.Dense(1))  # For predicting next day's percentage change
 
-
-#Compile the Model
+# Compile the Model
 model.compile(optimizer='adam', loss='mean_squared_error')
-
-
-#Train the model
-
