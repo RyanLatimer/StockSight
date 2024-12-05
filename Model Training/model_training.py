@@ -121,8 +121,7 @@ X_test_scaled = np.squeeze(X_test_scaled, axis=2)
 model = tf.keras.Sequential()
 
 # Use Input Layer
-model.add(tf.keras.layers.Input(shape=(time_steps, X_train_scaled.shape[2])))
-model.add(tf.keras.layers.Input(shape=(30, 6)))
+model.add(tf.keras.layers.Input(shape=(time_steps, X_train_scaled.shape[2]))) #Flexible input layer for adaptable sequence time
 
 # LSTM Layers
 model.add(tf.keras.layers.LSTM(50, return_sequences=True))
@@ -136,3 +135,18 @@ model.add(tf.keras.layers.Dense(1))  # For predicting next day's percentage chan
 
 # Compile the Model
 model.compile(optimizer='adam', loss='mean_squared_error')
+
+#Create the model
+
+# Train the model
+history = model.fit(
+    X_train_scaled, 
+    y_train_scaled, 
+    epochs=50, 
+    batch_size=32, 
+    validation_data=(X_test_scaled, y_test_scaled),
+    verbose=1
+)
+
+#Evaluate the Model
+test_loss = model.evaluate(X_test_scaled,y_test_scaled)
