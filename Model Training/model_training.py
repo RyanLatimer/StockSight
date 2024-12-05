@@ -44,6 +44,20 @@ for ticker in tickers:
 data.dropna(inplace=True)
 
 print(data)
+
+def compute_rsi(data, window=14):
+    delta = data.diff()
+    gain = (delta.where(delta > 0, 0)).rolling(window=window).mean()
+    loss = (-delta.where(delta < 0, 0)).rolling(window=window).mean()
+    rs = gain / loss
+    return 100 - (100 / (1 + rs))
+
+for ticker in tickers:
+    data[f'{ticker}_RSI'] = compute_rsi(data[f'{ticker}_Adj Close'])
+
+#Drop any extra rows created
+data.dropna(inplace=True)
+
 # Features and labels arrays
 #Features are variables that are changed
 #Labels are the percentace change
@@ -52,7 +66,7 @@ labels = []
 
 # For each ticker, prepare the data
 for ticker in tickers:
-    ticker_data = data[[f'{ticker}_Adj Close', f'{ticker}_MA5', f'{ticker}_MA20', f'{ticker}_MA50', f'{ticker}_return', f'{ticker}_Volume']]
+    ticker_data = data[[f'{ticker}_Adj Close', f'{ticker}_MA5', f'{ticker}_MA20', f'{ticker}_MA50', f'{ticker}_return', f'{ticker}_Volume'], f'{ticker}_RSI']
     
     #Calculate and Assign percentage change to labels as value.
     label = (data[f'{ticker}_Adj Close'].shift(-1) - data[f'{ticker}_Adj Close']) / data[f'{ticker}_Adj Close'] * 100
@@ -65,6 +79,7 @@ for ticker in tickers:
     labels.append(label.values)
 #Delete unesseary values created in loop
 data.dropna(inplace=True)
+
 
 # Convert to numpy arrays
 features = np.array(features)
