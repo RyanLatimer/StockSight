@@ -88,6 +88,9 @@ scaler_y = MinMaxScaler(feature_range=(0,1))
 #Features
 X_train_scaled = scaler_x.fit_transform(X_train)
 X_test_scaled = scaler_x.transform(X_test)
+#Make teh Scale 3D to fit LSTM
+X_train_scaled = np.expand_dims(X_train_scaled, axis=1)  # (samples, time_steps, features)
+X_test_scaled = np.expand_dims(X_test_scaled, axis=1)
 
 #Labels
 y_train_scaled = scaler_y.fit_transform(y_train)
