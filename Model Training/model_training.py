@@ -33,7 +33,7 @@ for ticker in tickers:
 
 
 #Remove Uneccesary Rows
-data.dropna
+data.dropna(inplace=True)
 
 # Features: Adjusted Close, Volume, and Moving Averages
 for ticker in tickers:
@@ -55,7 +55,7 @@ for ticker in tickers:
     ticker_data = data[[f'{ticker}_Adj Close', f'{ticker}_MA5', f'{ticker}_MA20', f'{ticker}_MA50', f'{ticker}_return', f'{ticker}_Volume']]
     
     #Calculate and Assign percentage change to labels as value.
-    label = label = (data[f'{ticker}_Adj Close'].shift(-1) - data[f'{ticker}_Adj Close']) / data[f'{ticker}_Adj Close'] * 100
+    label = (data[f'{ticker}_Adj Close'].shift(-1) - data[f'{ticker}_Adj Close']) / data[f'{ticker}_Adj Close'] * 100
     
     # Drop rows where the shifted label is NaN
     ticker_data = ticker_data[:-1]
@@ -63,6 +63,8 @@ for ticker in tickers:
 
     features.append(ticker_data.values)
     labels.append(label.values)
+#Delete unesseary values created in loop
+data.dropna(inplace=True)
 
 # Convert to numpy arrays
 features = np.array(features)
@@ -138,13 +140,26 @@ model.compile(optimizer='adam', loss='mean_squared_error')
 
 #Create the model
 
-# Train the model
+#Alert that model training is commencing:
+print("Commencing Model Training")
+
+from tensorflow.keras.callbacks import EarlyStopping
+
+# Define EarlyStopping Callback
+early_stopping = EarlyStopping(
+    monitor='val_loss',    # Monitors the validation loss
+    patience=10,           # Stops training if no improvement after 10 epochs
+    restore_best_weights=True  # Restores the weights of the best model during training
+)
+
+# Train the model with the callback
 history = model.fit(
     X_train_scaled, 
     y_train_scaled, 
     epochs=50, 
     batch_size=32, 
-    validation_data=(X_test_scaled, y_test_scaled),
+    validation_data=(X_test_scaled, y_test_scaled), 
+    callbacks=[early_stopping],
     verbose=1
 )
 
