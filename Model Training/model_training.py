@@ -150,3 +150,7 @@ history = model.fit(
 
 #Evaluate the Model
 test_loss = model.evaluate(X_test_scaled,y_test_scaled)
+print(test_loss)
+
+#Save the model
+model.save('../Models/model.h5')
