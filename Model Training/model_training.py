@@ -111,23 +111,18 @@ time_steps = 30  # Adjust this to use more historical data -- Currently set for 
 X_train_scaled, y_train_scaled = create_sequences(X_train_scaled, y_train_scaled, time_steps)
 X_test_scaled, y_test_scaled = create_sequences(X_test_scaled, y_test_scaled, time_steps)
 
-print(X_train_scaled.shape)  # Expected: (num_samples, 30, 6)
-print(y_train_scaled.shape)  # Expected: (num_samples,)
-
 #create_sequences creates an extra dimension in the 2 slot.
 #Remove the extra dimension
 X_train_scaled = np.squeeze(X_train_scaled, axis=2)
 X_test_scaled = np.squeeze(X_test_scaled, axis=2)
 
 
-print(X_train_scaled.shape)  # Expected: (num_samples, 30, 6)
-print(y_train_scaled.shape)  # Expected: (num_samples,)
-
 # Define the Model
 model = tf.keras.Sequential()
 
 # Use Input Layer
 model.add(tf.keras.layers.Input(shape=(time_steps, X_train_scaled.shape[2])))
+model.add(tf.keras.layers.Input(shape=(30, 6)))
 
 # LSTM Layers
 model.add(tf.keras.layers.LSTM(50, return_sequences=True))
