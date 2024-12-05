@@ -15,7 +15,7 @@ It would be nice to train the model on 1-2k stocks across
 various sectors to build a more complete model
 """
 
-tickers = ['AAPL']
+tickers = ['AAPL', 'MSFT', 'INTC', 'CSCO', 'IBM',]
 
 #Download all the historical data for teh last 20 years for each of the stocks
 data = yf.download(tickers, start='2004-01-01', end='2024-01-01', group_by='ticker' )
