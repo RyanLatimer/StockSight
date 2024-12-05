@@ -20,7 +20,6 @@ tickers = ['AAPL']
 #Download all the historical data for teh last 20 years for each of the stocks
 data = yf.download(tickers, start='2004-01-01', end='2024-01-01', group_by='ticker' )
 
-print(f"Flattened columns: {data.columns}")
 
 #Flatten the MultiIndex
 data.columns =['_'.join(col) for col in data.columns]
@@ -68,9 +67,7 @@ for ticker in tickers:
 # Convert to numpy arrays
 features = np.array(features)
 labels = np.array(labels)
-print(features)
-print(labels)
-print("success")
+
 # Reshaping the features for LSTM
 # Features should be in the shape (samples, time_steps, features)
 features = features.reshape(features.shape[0], features.shape[1], features.shape[2])
@@ -99,12 +96,38 @@ X_test_scaled = np.expand_dims(X_test_scaled, axis=1)
 y_train_scaled = scaler_y.fit_transform(y_train)
 y_test_scaled = scaler_y.transform(y_test)
 
+#Create the time sequence to train the data on the last # of days
+def create_sequences(features, labels, time_steps):
+    X, y = [], []
+    for i in range(len(features) - time_steps):
+        X.append(features[i:i + time_steps])  # Collect `time_steps` rows
+        y.append(labels[i + time_steps])     # Predict the label at `time_steps` ahead
+    return np.array(X), np.array(y)
+
+# Define the number of time steps
+time_steps = 30  # Adjust this to use more historical data -- Currently set for last 30 days
+
+# Create sequences using the sliding window
+X_train_scaled, y_train_scaled = create_sequences(X_train_scaled, y_train_scaled, time_steps)
+X_test_scaled, y_test_scaled = create_sequences(X_test_scaled, y_test_scaled, time_steps)
+
+print(X_train_scaled.shape)  # Expected: (num_samples, 30, 6)
+print(y_train_scaled.shape)  # Expected: (num_samples,)
+
+#create_sequences creates an extra dimension in the 2 slot.
+#Remove the extra dimension
+X_train_scaled = np.squeeze(X_train_scaled, axis=2)
+X_test_scaled = np.squeeze(X_test_scaled, axis=2)
+
+
+print(X_train_scaled.shape)  # Expected: (num_samples, 30, 6)
+print(y_train_scaled.shape)  # Expected: (num_samples,)
 
 # Define the Model
 model = tf.keras.Sequential()
 
 # Use Input Layer
-model.add(tf.keras.layers.Input(shape=(X_train_scaled.shape[1], X_train_scaled.shape[2])))
+model.add(tf.keras.layers.Input(shape=(time_steps, X_train_scaled.shape[2])))
 
 # LSTM Layers
 model.add(tf.keras.layers.LSTM(50, return_sequences=True))
