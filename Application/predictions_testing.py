@@ -3,6 +3,7 @@ from sklearn.preprocessing import MinMaxScaler
 import numpy as np
 import pandas as pd
 import yfinance as yf
+import datetime
 
 print(tf.__version__)
 
@@ -114,51 +115,61 @@ def create_sequences(data, time_steps):
 
 scaled_feature_sequences = create_sequences(scaled_features, time_steps)
 
-# Train your model using `scaled_feature_sequences` and `scaled_target`
-# model.fit(scaled_feature_sequences, scaled_target_sequences)
-
 # Predicting future data
-def predict_future(model, last_known_data, time_steps, scaler_x, scaler_y):
-    # Initialize the predictions list
+def predict_future(model, last_known_data, time_steps, scaler_x, scaler_y, num_days=30):
+    # Use today's date as the starting point
+    start_date = datetime.datetime.now()
+
+    # Generate future business days (skip weekends)
+    predicted_dates = pd.date_range(start=start_date, periods=num_days, freq='B')
+
+    # Only take the last `time_steps` rows of the data
+    current_input = last_known_data[-time_steps:]
+
     predictions = []
 
-    # Use the last known data for predictions
-    current_input = last_known_data
+    for _ in range(num_days):
+        # Reshape current_input to (1, time_steps, num_features) for prediction
+        reshaped_input = current_input.reshape(1, time_steps, current_input.shape[1])
 
-    # Predict the future one step at a time
-    for _ in range(30):  # Predict the next 30 days (for example)
-        # Make a prediction
-        prediction = model.predict(current_input.reshape(1, time_steps, -1))  # Shape must be (1, time_steps, features)
-        
+        # Make a prediction for the next step
+        prediction = model.predict(reshaped_input)
+
+        # Inverse transform the prediction to get the predicted price change
+        prediction = scaler_y.inverse_transform(prediction.reshape(-1, 1))
+
         # Append prediction to the list
-        predictions.append(prediction[0, 0])
+        predictions.append(prediction[0][0])
 
-        # Create a new input by appending the predicted value
-        # Create a placeholder with zeros for the new features (same number of features as in training)
-        new_row = np.zeros((1, current_input.shape[1]))  # Shape (1, features)
-        new_row[0, 0] = prediction  # Assign the predicted value to the first feature
-        
-        # Slide the window by removing the first row and adding the new row
-        current_input = np.append(current_input[1:], new_row, axis=0)
+        # Reshape the predicted value and append it to current_input
+        # Convert prediction to match the feature dimensions of the input
+        prediction_input = np.zeros((1, current_input.shape[1]))
+        prediction_input[0, 0] = prediction[0][0]  # Place the predicted value in the first feature column
 
-    # Inverse transform the predictions to get actual values
-    predictions_unscaled = scaler_y.inverse_transform(np.array(predictions).reshape(-1, 1))
+        # Update current_input with the new predicted value
+        predicted_input = np.append(current_input[1:], prediction_input, axis=0)
 
-    return predictions_unscaled
+        # Update current_input to the new predicted input
+        current_input = predicted_input
 
+    # Create a DataFrame to store the results
+    results = pd.DataFrame({
+        'Date': predicted_dates,
+        'Predicted_Price_Change': predictions,
+    })
 
-# Get the last known data for prediction
+    # Add the predicted price change to the last known price to get predicted prices
+    last_known_price = last_known_data[-1][0]  # The last price in the input data (Adj Close)
+    results['Predicted_Price'] = last_known_price + np.cumsum(results['Predicted_Price_Change'])
+
+    return results
+
+# Define the last known data (scaled)
 last_known_data = scaled_features[-time_steps:]
 
-# Predict the next 30 days of stock prices
-future_predictions = predict_future(model, last_known_data, time_steps, scaler_x, scaler_y)
+# Predict future data for 30 days
+num_days = 30
+future_predictions = predict_future(model=model, last_known_data=last_known_data, time_steps=time_steps, scaler_x=scaler_x, scaler_y=scaler_y, num_days=num_days)
 
-# Display results
-predicted_dates = pd.date_range(start=data.index[-1], periods=31, freq='B')[1:]  # 30 business days
-results = pd.DataFrame({
-    'Date': predicted_dates,
-    'Predicted_Price': future_predictions.flatten()
-})
-results.reset_index(drop=True, inplace=True)
-
-print(results)
+# Display the predicted future prices
+print(future_predictions)
