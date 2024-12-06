@@ -12,6 +12,9 @@ import os
 model_path = '../Models/model.keras'
 print("Model Path:", os.path.abspath(model_path))
 
+#Verify the model format
+model.summary()
+
 #Gather user input
 user_ticker = input("Enter a valid stock ticker:  ")
 

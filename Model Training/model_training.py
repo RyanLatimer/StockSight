@@ -233,27 +233,34 @@ print("Commencing Model Training")
 
 from tensorflow.keras.callbacks import EarlyStopping
 
-# Define EarlyStopping Callback
-early_stopping = EarlyStopping(
-    monitor='val_loss',    # Monitors the validation loss
-    patience=10,           # Stops training if no improvement after 10 epochs
-    restore_best_weights=True  # Restores the weights of the best model during training
+# Custom callback to print when early stopping occurs
+class CustomEarlyStoppingCallback(tf.keras.callbacks.Callback):
+    def on_train_end(self, logs=None):
+        # Check if the training stopped early due to early stopping
+        if hasattr(self.model, 'stop_training') and self.model.stop_training:
+            print("Training stopped early due to EarlyStopping.")
+        else:
+            print("Training completed without EarlyStopping.")
+
+# Define your EarlyStopping and Custom callback
+early_stopping = tf.keras.callbacks.EarlyStopping(
+    monitor='val_loss',
+    patience=10,  # Stops training if no improvement for 10 epochs
+    restore_best_weights=True
 )
 
-# Train the model with the callback
+custom_early_stopping = CustomEarlyStoppingCallback()
+
+# Train the model
 history = model.fit(
     X_train_scaled, 
     y_train_scaled, 
     epochs=50, 
     batch_size=32, 
     validation_data=(X_test_scaled, y_test_scaled), 
-    callbacks=[early_stopping],
+    callbacks=[early_stopping, custom_early_stopping],
     verbose=1
 )
 
-#Evaluate the Model
-test_loss = model.evaluate(X_test_scaled,y_test_scaled)
-print(test_loss)
-
-#Save the model
-model.save('test_model')
+# Save the model in the default SavedModel format
+model.save('test_model.keras')
