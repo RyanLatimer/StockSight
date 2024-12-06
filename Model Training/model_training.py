@@ -15,7 +15,7 @@ It would be nice to train the model on 1-2k stocks across
 various sectors to build a more complete model
 """
 
-tickers = ['AAPL', 'MSFT', 'INTC', 'CSCO', 'IBM',]
+tickers = ['AAPL']
 
 #Download all the historical data for teh last 20 years for each of the stocks
 data = yf.download(tickers, start='2004-01-01', end='2024-01-01', group_by='ticker' )
@@ -56,18 +56,80 @@ for ticker in tickers:
 #Drop any extra rows created
 data.dropna(inplace=True)
 
-#Compute MACD
-def compute_macd(data, fast=12, slow=26, signal=9):
-    # Calculate the MACD line
-    macd = data.ewm(span=fast, adjust=False).mean() - data.ewm(span=slow, adjust=False).mean()
-    # Calculate the Signal line
-    signal_line = macd.ewm(span=signal, adjust=False).mean()
-    return macd, signal_line
+data.dropna(inplace=True)
+
+#Add Bollinger Bands
+def bollinger_bands(data, ticker, window=20):
+    # Calculate rolling mean and rolling standard deviation
+    rolling_mean = data[f'{ticker}_Adj Close'].rolling(window=window).mean()
+    rolling_std = data[f'{ticker}_Adj Close'].rolling(window=window).std()
+
+    # Calculate the upper and lower Bollinger Bands
+    bb_upper = rolling_mean + (rolling_std * 2)
+    bb_lower = rolling_mean - (rolling_std * 2)
+    
+    # Assign columns to DataFrame
+    data[f'{ticker}_BB_Upper'] = bb_upper
+    data[f'{ticker}_BB_Lower'] = bb_lower
+
+# Apply Bollinger Bands to each ticker
+for ticker in tickers:
+    bollinger_bands(data, ticker)
+
+
+# Add Stochastic Oscillator
+def stochastic_oscillator(data, ticker, window=14):
+    low_min = data[f'{ticker}_Low'].rolling(window=window).min()
+    high_max = data[f'{ticker}_High'].rolling(window=window).max()
+    stoch_k = 100 * (data[f'{ticker}_Adj Close'] - low_min) / (high_max - low_min)
+    stoch_d = stoch_k.rolling(window=3).mean()
+    return stoch_k, stoch_d
 
 for ticker in tickers:
-    macd, signal_line = compute_macd(data[f'{ticker}_Adj Close'])
-    data[f'{ticker}_MACD'] = macd
-    data[f'{ticker}_MACD_Signal'] = signal_line
+    data[f'{ticker}_StochK'], data[f'{ticker}_StochD'] = stochastic_oscillator(data, ticker)
+data.dropna(inplace=True)
+
+
+# On-Balance Volume (OBV)
+# Calculate OBV with position-based indexing
+def on_balance_volume(data, ticker):
+    obv = [0]  # Initialize OBV list with zero as the first value
+    for i in range(1, len(data)):
+        if data[f'{ticker}_Adj Close'].iloc[i] > data[f'{ticker}_Adj Close'].iloc[i - 1]:
+            obv.append(obv[-1] + data[f'{ticker}_Volume'].iloc[i])
+        elif data[f'{ticker}_Adj Close'].iloc[i] < data[f'{ticker}_Adj Close'].iloc[i - 1]:
+            obv.append(obv[-1] - data[f'{ticker}_Volume'].iloc[i])
+        else:
+            obv.append(obv[-1])  # If the close is the same as previous, OBV doesn't change
+    return obv
+
+# Apply OBV to each ticker
+for ticker in tickers:
+    data[f'{ticker}_OBV'] = on_balance_volume(data, ticker)
+
+# Drop rows with NaN values after calculation
+data.dropna(inplace=True)
+
+
+# Chaikin Money Flow (CMF)
+def chaikin_money_flow(data, ticker, window=20):
+    # Calculate the money flow multiplier
+    money_flow_multiplier = ((data[f'{ticker}_Adj Close'] - data[f'{ticker}_Low']) - (data[f'{ticker}_High'] - data[f'{ticker}_Adj Close'])) / (data[f'{ticker}_High'] - data[f'{ticker}_Low'])
+    
+    # Multiply by volume
+    money_flow_volume = money_flow_multiplier * data[f'{ticker}_Volume']
+    
+    # Calculate CMF
+    cmf = money_flow_volume.rolling(window=window).sum() / data[f'{ticker}_Volume'].rolling(window=window).sum()
+    return cmf
+
+# Apply CMF to each ticker
+for ticker in tickers:
+    data[f'{ticker}_CMF'] = chaikin_money_flow(data, ticker)
+
+data.dropna(inplace=True)
+
+
 
 # Features and labels arrays
 #Features are variables that are changed
@@ -77,7 +139,7 @@ labels = []
 
 # For each ticker, prepare the data
 for ticker in tickers:
-    ticker_data = data[[f'{ticker}_Adj Close', f'{ticker}_MA5', f'{ticker}_MA20', f'{ticker}_MA50', f'{ticker}_return', f'{ticker}_Volume', f'{ticker}_RSI', f'{ticker}_MACD_Signal']]
+    ticker_data = data[[f'{ticker}_Adj Close', f'{ticker}_MA5', f'{ticker}_MA20', f'{ticker}_MA50', f'{ticker}_return', f'{ticker}_Volume', f'{ticker}_RSI', f'{ticker}_BB_Upper', f'{ticker}_BB_Lower', f'{ticker}_StochK', f'{ticker}_StochD', f'{ticker}_OBV', f'{ticker}_CMF']]
     
     #Calculate and Assign percentage change to labels as value.
     label = (data[f'{ticker}_Adj Close'].shift(-1) - data[f'{ticker}_Adj Close']) / data[f'{ticker}_Adj Close'] * 100
@@ -194,4 +256,4 @@ test_loss = model.evaluate(X_test_scaled,y_test_scaled)
 print(test_loss)
 
 #Save the model
-model.save('../Models/model.keras')
+model.save('../Models/AAPL_full_technical.keras')
