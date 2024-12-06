@@ -6,7 +6,11 @@ import functions as f
 import yfinance as yf
 import os
  
-model = tf.keras.models.load_model('../Models/model.keras')
+model = tf.keras.models.load_model('/Users/rlatimer96/Desktop/Github Repos/GitHub/Models/model.keras')
+
+import os
+model_path = '../Models/model.keras'
+print("Model Path:", os.path.abspath(model_path))
 
 #Gather user input
 user_ticker = input("Enter a valid stock ticker:  ")
