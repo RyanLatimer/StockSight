@@ -6,7 +6,7 @@ import functions as f
 import yfinance as yf
 import os
  
-model = tf.keras.models.load_model('/Users/rlatimer96/Desktop/Github Repos/GitHub/Models/model.keras')
+model = tf.keras.models.load_model('/Users/rlatimer96/Desktop/Github Repos/GitHub/Models/model.h5')
 
 import os
 model_path = '../Models/model.keras'
