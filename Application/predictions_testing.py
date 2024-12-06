@@ -16,7 +16,7 @@ stock_data = f.fetch_last_60_days_data(user_ticker)
 
 dataset = f.build_feature_dataset(user_ticker)
 
-#Scla the data
+#Create the Scaler
 scaler_x = MinMaxScaler(feature_range=(0,1))
 
 #Convert to Numpy
@@ -35,8 +35,11 @@ def create_sequences(data, time_steps):
 # Generate sequences
 data_sequences = create_sequences(data_array, time_steps)
 
-# Scale the features using the scaler
+# Scale the entire data
 scaled_data = scaler_x.fit_transform(data_array)
+
+# Then create scaled sequences
+scaled_sequences = create_sequences(scaled_data, time_steps)
 
 # Create scaled sequences
 scaled_sequences = create_sequences(scaled_data, time_steps)
