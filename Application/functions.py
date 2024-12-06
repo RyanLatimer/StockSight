@@ -31,13 +31,20 @@ def bollinger_bands_lower(data, ticker, window=20):
     bb_lower = rolling_mean - (rolling_std * 2)
     return bb_lower
 
-# Function to compute Stochastic Oscillator
-def stochastic_oscillator(data, ticker, window=14):
+# Function to compute Stochastic Oscillator K
+def stochastic_oscillator_k(data, ticker, window=14):
+    low_min = data[f'{ticker}_Low'].rolling(window=window).min()
+    high_max = data[f'{ticker}_High'].rolling(window=window).max()
+    stoch_k = 100 * (data[f'{ticker}_Adj Close'] - low_min) / (high_max - low_min)
+    return stoch_k,
+
+#Function to compute Stochastic Oscillator D
+def stochastic_oscillator_d(data, ticker, window=14):
     low_min = data[f'{ticker}_Low'].rolling(window=window).min()
     high_max = data[f'{ticker}_High'].rolling(window=window).max()
     stoch_k = 100 * (data[f'{ticker}_Adj Close'] - low_min) / (high_max - low_min)
     stoch_d = stoch_k.rolling(window=3).mean()
-    return stoch_k, stoch_d
+    return stoch_d
 
 # Function to compute On-Balance Volume (OBV)
 def on_balance_volume(data, ticker):
