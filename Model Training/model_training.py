@@ -262,5 +262,8 @@ history = model.fit(
     verbose=1
 )
 
-# Save the model in the default SavedModel format
+# Save thee model
 model.save('test_model.keras')
+
+model_load = tf.keras.models.load_model('test_model.keras')
+print("successful model loading")

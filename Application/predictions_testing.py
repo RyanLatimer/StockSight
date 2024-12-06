@@ -5,16 +5,13 @@ import pandas as pd
 import functions as f
 import yfinance as yf
 import os
- 
-model = tf.keras.models.load_model('/Users/rlatimer96/Desktop/Github Repos/GitHub/Models/model.h5')
+print(tf.__version__)
 
-import os
-model_path = '../Models/model.keras'
-print("Model Path:", os.path.abspath(model_path))
-
+model = tf.keras.models.load_model('test_model.keras')
+print("loading complete")
 #Verify the model format
 model.summary()
-
+print("verifying complete")
 #Gather user input
 user_ticker = input("Enter a valid stock ticker:  ")
 
