@@ -45,9 +45,6 @@ scaled_data = scaler_x.fit_transform(data_array)
 # Then create scaled sequences
 scaled_sequences = create_sequences(scaled_data, time_steps)
 
-# Create scaled sequences
-scaled_sequences = create_sequences(scaled_data, time_steps)
-
 # Make predictions
 predictions = model.predict(scaled_sequences)
 
