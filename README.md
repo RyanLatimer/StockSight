@@ -4,6 +4,9 @@ StockSight is a Python-based application designed to track real-time stock price
 
 **Please Note:** While StockSight provides predictions based on historical data, the accuracy of predictions is not guaranteed. Users should exercise caution when making investment decisions.
 
+### Future Development
+The development of StockSight has been halted by the developers due to frutiless attempts at creating a working model. If this project interests you an you would like to take part developing it, feel free to do as such. If a working model can be created, this project will become something truly great.
+
 ## Table of Contents
 
 - [Features](#features)
